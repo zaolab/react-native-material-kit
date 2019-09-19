@@ -10,7 +10,7 @@ import RadioButtonGroup from './RadioButtonGroup';
 import Ripple from './Ripple';
 import Spinner from './Spinner';
 import Switch from './Switch';
-import * as Textfield from './Textfield';
+import Textfield from './Textfield';
 export { AccentFab, AccentRaisedButton, Button, ButtonStyles, ColoredFab, ColoredRaisedButton, Fab, FlatButton, RaisedButton, Checkbox, IconToggle, RadioButton, RadioButtonGroup, Ripple, Spinner, Switch, Textfield, };
 export { ButtonProps } from './Button';
 export { CheckboxProps } from './Checkbox';
