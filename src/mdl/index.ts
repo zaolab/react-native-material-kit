@@ -21,6 +21,8 @@ import Ripple from './Ripple';
 // @ts-ignore
 import Spinner from './Spinner';
 import Switch from './Switch';
+// @ts-ignore
+import * as Textfield from './Textfield';
 
 export {
   AccentFab,
@@ -39,6 +41,7 @@ export {
   Ripple,
   Spinner,
   Switch,
+  Textfield,
 };
 
 // Types

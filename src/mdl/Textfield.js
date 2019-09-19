@@ -44,16 +44,16 @@ class FloatingLabel extends Component {
     this.state = {
       progress: new Animated.Value(1),
       opacity: new Animated.Value(0),
-      text: '',
+      text: this.props.text,
     };
   }
 
-  componentWillMount() {
+  /* componentWillMount() {
     this.updateText(this.props.text);
-  }
+  } */
 
-  componentWillReceiveProps(nextProps) {
-    this.updateText(nextProps.text);
+  static getDerivedStateFromProps(props, state) {
+    return { text: props.text };
   }
 
   // property initializers begin
@@ -83,7 +83,7 @@ class FloatingLabel extends Component {
   }
 
   measure(cb) {
-    return this.refs.label && UIManager.measure(findNodeHandle(this.refs.label), cb);
+    return this.label && UIManager.measure(findNodeHandle(this.label), cb);
   }
 
   aniFloatLabel() {
@@ -143,7 +143,7 @@ class FloatingLabel extends Component {
 
     return (
       <Animated.Text
-        ref="label"
+        ref={(r) => this.label = r}
         pointerEvents="none"
         allowFontScaling={this.props.allowFontScaling}
 
@@ -328,6 +328,10 @@ class Textfield extends Component {
     this.state = {
       inputMarginTop: 0,
     };
+      
+    this.bufferedValue = this.props.value || this.props.text
+    || this.props.defaultValue;
+    this._originPlaceholder = this.props.placeholder;
   }
 
   set bufferedValue(v) {
@@ -342,33 +346,33 @@ class Textfield extends Component {
   }
 
   focus() {
-    if (this.refs.input) {
-      this.refs.input.focus();
+    if (this.input) {
+      this.input.focus();
     }
   }
 
   isFocused() {
-    return this.refs.input && this.refs.input.isFocused();
+    return this.input && this.input.isFocused();
   }
 
   blur() {
-    if (this.refs.input) {
-      this.refs.input.blur();
+    if (this.input) {
+      this.input.blur();
     }
   }
 
-  componentWillMount() {
+  /* componentWillMount() {
     this.bufferedValue = this.props.value || this.props.text
     || this.props.defaultValue;
     this._originPlaceholder = this.props.placeholder;
-  }
+  } */
 
-  componentWillReceiveProps(nextProps) {
-    const newText = nextProps.value || nextProps.text || nextProps.defaultValue;
+  getSnapshotBeforeUpdate(props, state) {
+    const newText = this.props.value || this.props.text || this.props.defaultValue;
     if (newText) {
       this.bufferedValue = newText;
     }
-    this._originPlaceholder = nextProps.placeholder;
+    this._originPlaceholder = this.props.placeholder;
   }
 
   componentDidMount() {
@@ -404,10 +408,10 @@ class Textfield extends Component {
   }
 
   _doMeasurement() {
-    if (this.refs.input) {
-      this.refs.input.measure(this._onInputMeasured.bind(this));
-      if (this.props.floatingLabelEnabled && this.refs.floatingLabel) {
-        this.refs.floatingLabel.measure(this._onLabelMeasured.bind(this));
+    if (this.input) {
+      this.input.measure(this._onInputMeasured.bind(this));
+      if (this.props.floatingLabelEnabled && this.floatingLabel) {
+        this.floatingLabel.measure(this._onLabelMeasured.bind(this));
       }
     }
   }
@@ -420,7 +424,7 @@ class Textfield extends Component {
     Object.assign(this.inputFrame, {
       left, top, width, height,
     });
-    this.refs.underline.updateLineLength(width, () => {
+    this.underline.updateLineLength(width, () => {
       if (this.bufferedValue || this.isFocused()) {
         this._aniStartHighlight(this.isFocused()); // if input not empty, lift the label
       }
@@ -432,8 +436,8 @@ class Textfield extends Component {
       return;
     }
 
-    if (this.refs.floatingLabel) {
-      const animations = this.refs.floatingLabel.aniFloatLabel();
+    if (this.floatingLabel) {
+      const animations = this.floatingLabel.aniFloatLabel();
       if (animations.length) {
         this.startAnimations(animations);
       }
@@ -448,15 +452,15 @@ class Textfield extends Component {
 
       // and show floating label
       // FIXME workaround https://github.com/facebook/react-native/issues/3220
-      if (this.refs.floatingLabel) this.refs.floatingLabel.updateText(this._originPlaceholder);
+      if (this.floatingLabel) this.floatingLabel.updateText(this._originPlaceholder);
     }
 
     // stretch the underline if enabled
-    const animations = this.refs.underline.aniStretchUnderline(focused);
+    const animations = this.underline.aniStretchUnderline(focused);
 
     // and lift the floating label, if enabled
-    if (this.props.floatingLabelEnabled && this.refs.floatingLabel) {
-      animations.push(...this.refs.floatingLabel.aniFloatLabel());
+    if (this.props.floatingLabelEnabled && this.floatingLabel) {
+      animations.push(...this.floatingLabel.aniFloatLabel());
     }
 
     if (animations.length) {
@@ -467,12 +471,12 @@ class Textfield extends Component {
   // animation when textfield lost focus
   _aniStopHighlight() {
     // shrink the underline
-    const animations = this.refs.underline.aniShrinkUnderline();
+    const animations = this.underline.aniShrinkUnderline();
 
     // pull down the label, or keep position if input is not empty
     if (this.props.floatingLabelEnabled && !this.bufferedValue) {
       // input is empty, label should be pulled down
-      animations.push(...this.refs.floatingLabel.aniSinkLabel());
+      animations.push(...this.floatingLabel.aniSinkLabel());
     }
 
     if (animations.length) {
@@ -483,8 +487,8 @@ class Textfield extends Component {
 
           // and hide floating label
           // FIXME workaround https://github.com/facebook/react-native/issues/3220
-          if (!this.bufferedValue && this.refs.floatingLabel) {
-            this.refs.floatingLabel.updateText('');
+          if (!this.bufferedValue && this.floatingLabel) {
+            this.floatingLabel.updateText('');
           }
         }
       });
@@ -492,8 +496,8 @@ class Textfield extends Component {
   }
 
   setPlaceholder(placeholder) {
-    if (this.refs.input) {
-      this.refs.input.setNativeProps({ placeholder });
+    if (this.input) {
+      this.input.setNativeProps({ placeholder });
     }
   }
 
@@ -515,7 +519,7 @@ class Textfield extends Component {
 
       floatingLabel = (
         <FloatingLabel
-          ref="floatingLabel"
+          ref={(r) => this.floatingLabel = r}
           {...props}
           text={this.props.placeholder}
           allowFontScaling={this.props.allowFontScaling}
@@ -537,7 +541,7 @@ class Textfield extends Component {
       <View style={this.props.style} onLayout={this._doMeasurement.bind(this)}>
         {floatingLabel}
         <TextInput // the input
-          ref="input"
+          ref={(r) => this.input = r}
           {...inputProps}
           {...this.props.additionalInputProps}
           style={[{
@@ -558,7 +562,7 @@ class Textfield extends Component {
           underlineColorAndroid="transparent"
         />
         <Underline
-          ref="underline" // the underline
+          ref={(r) => this.underline = r} // the underline
           {...underlineProps}
           underlineAniDur={this.props.floatingLabelAniDuration}
         />
